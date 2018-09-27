@@ -10,12 +10,17 @@ type RouteDefinitions<T, TMeta> = {
   [P in keyof T]: AllRouteDefinitions<T[P], TMeta>
 }
 
-interface RouteChild<TMeta, TArgs> {
-  _: Route<TMeta, TArgs>
+interface RouteChild<TMeta, TChildMeta, TArgs> {
+  _: Route<TMeta, TChildMeta, TArgs>
 }
 
 type Routes<TChildren = any, TMeta = any, TArgs = ZeroArgs> =
-  RoutesTree<TChildren, TArgs> & RouteChild<TMeta, TArgs>
+  RoutesTree<TChildren, TArgs> &
+  RouteChild<
+  TMeta,
+  TChildren extends RouteDefinitions<any, infer TChildMeta> ? TChildMeta : undefined,
+  TArgs
+  >
 
 type RoutesTreeChildIsArg<T, TArgs, TName> = T extends ArgDefinition<infer TChildren, infer TMeta> & ArgKind
   ? Routes<TChildren, TMeta, ArgsCounter<TArgs extends ZeroArgs ? TName : TArgs & TName>>
@@ -29,23 +34,23 @@ type RoutesTree<T, TArgs> = {
   [P in keyof T]: RoutesTreeChildIsRoute<T[P], TArgs, Pick<T, P>>
 }
 
-interface CreateRoutesArgs<TMeta> {
+interface CreateRoutesArgs {
   /**
    * Creates route part
    */
-  route: <T>(options?: RouteDefinition<T, TMeta>) => RouteDefinition<T, TMeta> & RouteKind
+  route: <TMeta, T>(options?: RouteDefinition<T, TMeta>) => RouteDefinition<T, TMeta> & RouteKind
 
   /**
    * Creates argument part
    */
-  arg: <T>(options?: ArgDefinition<T, TMeta>) => ArgDefinition<T, TMeta> & ArgKind
+  arg: <TMeta, T>(options?: ArgDefinition<T, TMeta>) => ArgDefinition<T, TMeta> & ArgKind
 }
 
-export interface MenuSystem<T, TMeta> {
-  routes: Routes<T, TMeta>
+export interface MenuSystem<T> {
+  readonly routes: Routes<T, undefined>
 }
 
-class MenuSystemImpl<T, TMeta> implements MenuSystem<T, TMeta> {
+class MenuSystemImpl<T> implements MenuSystem<T> {
   private static build(parent: Routes, tree: RouteDefinitions<any, any>) {
     if (!tree) {
       return
@@ -62,17 +67,17 @@ class MenuSystemImpl<T, TMeta> implements MenuSystem<T, TMeta> {
     }
   }
 
-  readonly routes: Routes<T, TMeta>
+  readonly routes: Routes<T>
 
-  constructor(tree: RouteDefinitions<T, TMeta>, config: MenuConfig | undefined) {
-    const root: RouteDefinition<{}, {}> & RouteKind = {
+  constructor(tree: RouteDefinitions<T, any>, config: MenuConfig | undefined) {
+    const root: RouteDefinition<any> & RouteKind = {
       kind: 'route',
       path: config && config.basePath || '/'
     }
 
     this.routes = {
-      _: new RouteItem(undefined, root, '') as Route<any, any>
-    } as Routes<T, TMeta>
+      _: new RouteItem(undefined, root, '') as Route
+    } as Routes<T>
 
     MenuSystemImpl.build(this.routes as Routes, tree)
   }
@@ -81,13 +86,13 @@ class MenuSystemImpl<T, TMeta> implements MenuSystem<T, TMeta> {
 /**
  * Creates new menu builder
  */
-export const createMenuBuilder = <TMeta = never>(config?: MenuConfig) => {
+export const createMenuBuilder = (config?: MenuConfig) => {
   return {
     /**
      * Creates new tree or sub tree
      */
-    tree: <T extends RouteDefinitions<any, TMeta>>(fn: (data: CreateRoutesArgs<TMeta>) => T): T => {
-      const q = fn({
+    tree: <T extends RouteDefinitions<any, any>>(fn: (data: CreateRoutesArgs) => T): T =>
+      fn({
         arg: options => ({
           ...options,
           kind: 'arg'
@@ -97,15 +102,13 @@ export const createMenuBuilder = <TMeta = never>(config?: MenuConfig) => {
           ...options,
           kind: 'route'
         })
-      })
-      return q
-    },
+      }),
 
     /**
      * Builds menu
      */
-    build: <T extends RouteDefinitions<any, TMeta>>(tree: T): MenuSystem<T, TMeta> => {
-      return new MenuSystemImpl<T, TMeta>(tree, config)
+    build: <T extends RouteDefinitions<any, any>>(tree: T): MenuSystem<T> => {
+      return new MenuSystemImpl<T>(tree, config)
     }
   }
 }

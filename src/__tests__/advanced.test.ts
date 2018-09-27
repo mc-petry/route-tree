@@ -1,7 +1,7 @@
 import { createMenuBuilder } from '..'
 
 describe('Advanced', () => {
-  const builder = createMenuBuilder<{ hidden?: boolean }>({
+  const builder = createMenuBuilder({
     basePath: '/personal'
   })
 
@@ -39,21 +39,66 @@ describe('Advanced', () => {
       .toBe(`/personal/users/1/comments`)
   })
 
+  it('Children', () => {
+    const menu = builder.build(
+      builder.tree(({ route, arg }) => ({
+        articles: route({
+          children: {
+            id: arg({
+              children: {
+                comments: route()
+              }
+            })
+          }
+        }),
+        users: route()
+      }))
+    )
+
+    expect(menu.routes._.children.length).toBe(2)
+
+    expect(menu.routes.articles.id._.children[0])
+      .toBe(menu.routes.articles.id.comments._)
+  })
+
   it('Meta', () => {
     const menu = builder.build(
       builder.tree(({ route }) => ({
-        home: route(),
-        about: route({
-          meta: {
-            hidden: true
+        home: route({
+          meta: { theme: 'light' },
+          children: {
+            projects: route({
+              meta: { visible: false },
+              children: {
+                shared: route({
+                  meta: {
+                    prop: '1'
+                  }
+                }),
+                personal: route({
+                  meta: {
+                    prop: '2'
+                  }
+                })
+              }
+            })
           }
+        }),
+        about: route({
+          meta: { theme: 'dark' }
         })
       }))
     )
 
-    expect(
-      menu.routes.about._.meta &&
-      menu.routes.about._.meta.hidden
-    ).toBe(true)
+    // Direct meta
+    expect(menu.routes.home._.meta.theme).toBe('light')
+    expect(menu.routes.about._.meta.theme).toBe('dark')
+    expect(menu.routes.home.projects._.meta.visible).toBeFalsy()
+
+    // Children meta
+    expect(menu.routes._.children[0].meta.theme).toBe('light')
+    expect(menu.routes._.children[1].meta.theme).toBe('dark')
+    expect(menu.routes.home.projects._.children[0].meta.prop).toBe('1')
+    expect(menu.routes.home.projects._.children[1].meta.prop).toBe('2')
   })
 })

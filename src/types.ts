@@ -18,7 +18,7 @@ interface BaseRouteDefinition<T, TMeta> {
   meta?: TMeta
 }
 
-export interface RouteDefinition<TChildren, TMeta = never> extends BaseRouteDefinition<TChildren, TMeta> {
+export interface RouteDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
   /**
    * Path relative to parent
    * By default paths equals to key
@@ -26,7 +26,7 @@ export interface RouteDefinition<TChildren, TMeta = never> extends BaseRouteDefi
   path?: string
 }
 
-export interface ArgDefinition<TChildren, TMeta> extends BaseRouteDefinition<TChildren, TMeta> {
+export interface ArgDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
 }
 
 export type AllRouteDefinitions<T, TMeta> =

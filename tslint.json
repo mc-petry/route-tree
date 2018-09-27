@@ -3,6 +3,7 @@
     "tslint:latest"
   ],
   "rules": {
+    "array-type": false,
     "arrow-parens": [
       true,
       "ban-single-arg-parens"

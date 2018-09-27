@@ -6,22 +6,28 @@ type FullpathType<TArgs> = TArgs extends ZeroArgs
   ? () => string
   : (args: TArgs) => string
 
-export interface Route<TMeta, TArgs> {
+export interface Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
   /**
    * Gets full path
    */
-  fullpath: FullpathType<TArgs>
+  readonly fullpath: FullpathType<TArgs>
 
   /**
    * Custom route data defined in RouteDefinition
    */
-  meta: TMeta | undefined
+  readonly meta: TMeta
+
+  /**
+   * Gets children routes
+   */
+  readonly children: ReadonlyArray<Route<TChildMeta>>
 }
 
-export class RouteItem implements Route<any, any> {
+export class RouteItem implements Route {
   private static readonly argPlaceHolder = (name: string) => `:${name}`
 
   meta: any
+  children: Route[] = []
 
   private readonly _path: string
   private readonly _fullpath: string
@@ -32,6 +38,10 @@ export class RouteItem implements Route<any, any> {
     child: AllRouteDefinitions<any, any>,
     chainKey: string
   ) {
+    if (_parent) {
+      _parent.children.push(this)
+    }
+
     this._kind = child.kind
     this.meta = child.meta
 
