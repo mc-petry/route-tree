@@ -36,18 +36,30 @@ type RoutesTree<T, TArgs> = {
 
 interface CreateRoutesArgs {
   /**
-   * Creates route part
+   * Creates the route part.
    */
   route: <TMeta, T>(options?: RouteDefinition<T, TMeta>) => RouteDefinition<T, TMeta> & RouteKind
 
   /**
-   * Creates argument part
+   * Creates the argument part.
    */
   arg: <TMeta, T>(options?: ArgDefinition<T, TMeta>) => ArgDefinition<T, TMeta> & ArgKind
 }
 
 export interface MenuSystem<T> {
+  /**
+   * Routes tree
+   */
   readonly routes: Routes<T, undefined>
+
+  /**
+   * Returns the route that match specified location.
+   * Otherwise returns null
+   *
+   * @param location Search path
+   * @param maxDepth Maximum search depth. Depth 0 equals to root item
+   */
+  findRoute(location: string, maxDepth?: number): Route | null
 }
 
 class MenuSystemImpl<T> implements MenuSystem<T> {
@@ -81,6 +93,63 @@ class MenuSystemImpl<T> implements MenuSystem<T> {
 
     MenuSystemImpl.build(this.routes as Routes, tree)
   }
+
+  findRoute(location: string, maxLevel?: number): Route | null {
+    const root = this.routes._
+
+    if (!location.startsWith(root.path)) {
+      return null
+    }
+
+    // Check is root
+    if (
+      location.length === root.path.length ||
+      // With trailing slash
+      (
+        location.length - 1 === root.path.length &&
+        location.slice(-1) === '/'
+      ) ||
+      maxLevel === 0
+    ) {
+      return root as Route
+    }
+
+    location = location.substr(root.path.length + 1)
+
+    if (location.slice(-1) === '/') {
+      location = location.slice(0, -1)
+    }
+
+    const parts = location.split('/')
+
+    let item: Route = root as Route
+
+    for (let i = 0; i < parts.length; i++) {
+      for (let j = 0; j < item.children.length; j++) {
+        const child = item.children[j]
+
+        if (child.kind === 'route' && child.path === parts[i]) {
+          item = child
+          break
+        }
+
+        if (child.kind === 'arg') {
+          item = child
+          break
+        }
+
+        if (j === item.children.length - 1) {
+          return null
+        }
+      }
+
+      if (maxLevel && maxLevel === i + 1) {
+        return item
+      }
+    }
+
+    return item
+  }
 }
 
 /**
@@ -105,7 +174,7 @@ export const createMenuBuilder = (config?: MenuConfig) => {
       }),
 
     /**
-     * Builds menu
+     * Builds menu from tree
      */
     build: <T extends RouteDefinitions<any, any>>(tree: T): MenuSystem<T> => {
       return new MenuSystemImpl<T>(tree, config)

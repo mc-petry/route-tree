@@ -101,4 +101,66 @@ describe('Advanced', () => {
     expect(menu.routes.home.projects._.children[0].meta.prop).toBe('1')
     expect(menu.routes.home.projects._.children[1].meta.prop).toBe('2')
   })
+
+  it('Find child', () => {
+    const menu = builder.build(
+      builder.tree(({ route, arg }) => ({
+        users: route({
+          children: {
+            id: arg({
+              children: {
+                view: route(),
+                comments: route()
+              }
+            })
+          }
+        })
+      }))
+    )
+
+    expect(menu.findRoute('/personal'))
+      .toBe(menu.routes._)
+
+    expect(menu.findRoute('/personal/users'))
+      .toBe(menu.routes.users._)
+
+    expect(menu.findRoute('/personal/users/1'))
+      .toBe(menu.routes.users.id._)
+
+    expect(menu.findRoute('/personal/users/1/comments'))
+      .toBe(menu.routes.users.id.comments._)
+
+    // ─────────────────────────────────────────────────────────────────
+    // Fake
+
+    expect(menu.findRoute('/personal/users/1/fake'))
+      .toBe(null)
+
+    expect(menu.findRoute('/personal/fake'))
+      .toBe(null)
+
+    // ─────────────────────────────────────────────────────────────────
+    // Trailing slash
+
+    expect(menu.findRoute('/personal/'))
+      .toBe(menu.routes._)
+
+    expect(menu.findRoute('/personal/users/1'))
+      .toBe(menu.routes.users.id._)
+
+    // ─────────────────────────────────────────────────────────────────
+    // Max level
+
+    expect(menu.findRoute('/personal/users/1/comments', 0))
+      .toBe(menu.routes._)
+
+    expect(menu.findRoute('/personal/users/1/comments', 1))
+      .toBe(menu.routes.users._)
+
+    expect(menu.findRoute('/personal/users/1/comments', 2))
+      .toBe(menu.routes.users.id._)
+
+    expect(menu.findRoute('/personal/users/1/comments', 3))
+      .toBe(menu.routes.users.id.comments._)
+  })
 })

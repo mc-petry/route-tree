@@ -6,22 +6,25 @@ export interface ArgKind {
   kind: 'arg'
 }
 
+export type RouteType = RouteKind['kind'] | ArgKind['kind']
+
 interface BaseRouteDefinition<T, TMeta> {
   /**
-   * Chidlren routes
+   * Chidlren routes.
    */
   children?: T
 
   /**
-   * Custom route attributes
+   * Custom route attributes.
+   * Useful to store specific params and use it when iterate over parents children.
    */
   meta?: TMeta
 }
 
 export interface RouteDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
   /**
-   * Path relative to parent
-   * By default paths equals to key
+   * Path relative to parent. By default paths equals to key.
+   * `pascalCase` keys will be transformed to `dash-case` routes.
    */
   path?: string
 }
@@ -34,6 +37,9 @@ export type AllRouteDefinitions<T, TMeta> =
   (ArgDefinition<T, TMeta> & ArgKind)
 
 export interface MenuConfig {
+  /**
+   * Global routes prefix.
+   */
   basePath?: string
 }
 

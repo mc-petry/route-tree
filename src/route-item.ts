@@ -1,6 +1,8 @@
-import { AllRouteDefinitions, ArgKind, ArgType, RouteKind, ZeroArgs } from './types'
+import { AllRouteDefinitions, ArgType, RouteType, ZeroArgs } from './types'
 
-interface Arguments { [key: string]: ArgType }
+interface Arguments {
+  [key: string]: ArgType
+}
 
 type FullpathType<TArgs> = TArgs extends ZeroArgs
   ? () => string
@@ -8,30 +10,40 @@ type FullpathType<TArgs> = TArgs extends ZeroArgs
 
 export interface Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
   /**
-   * Gets full path
+   * Builds the full path.
    */
   readonly fullpath: FullpathType<TArgs>
 
   /**
-   * Custom route data defined in RouteDefinition
+   * Gets the relative path.
+   */
+  readonly path: string
+
+  /**
+   * Gets the custom route attributes defined in RouteDefinition.
    */
   readonly meta: TMeta
 
   /**
-   * Gets children routes
+   * Gets the children routes.
    */
   readonly children: ReadonlyArray<Route<TChildMeta>>
+
+  /**
+   * Gets the route type.
+   */
+  readonly kind: RouteType
 }
 
 export class RouteItem implements Route {
   private static readonly argPlaceHolder = (name: string) => `:${name}`
 
-  meta: any
-  children: Route[] = []
+  readonly meta: any
+  readonly children: Route[] = []
+  readonly path: string
+  readonly kind: RouteType
 
-  private readonly _path: string
   private readonly _fullpath: string
-  private readonly _kind: RouteKind['kind'] | ArgKind['kind']
 
   constructor(
     private readonly _parent: RouteItem | undefined,
@@ -42,7 +54,7 @@ export class RouteItem implements Route {
       _parent.children.push(this)
     }
 
-    this._kind = child.kind
+    this.kind = child.kind
     this.meta = child.meta
 
     //
@@ -51,11 +63,11 @@ export class RouteItem implements Route {
 
     switch (child.kind) {
       case 'route':
-        this._path = child.path || chainKey
+        this.path = child.path || chainKey.replace(/[A-Z]/g, m => '-' + m.toLowerCase())
         break
 
       case 'arg':
-        this._path = RouteItem.argPlaceHolder(chainKey)
+        this.path = RouteItem.argPlaceHolder(chainKey)
         break
 
       default:
@@ -72,10 +84,10 @@ export class RouteItem implements Route {
         ? ''
         : '/'
 
-      this._fullpath = parentPath + divider + this._path
+      this._fullpath = parentPath + divider + this.path
     }
     else {
-      this._fullpath = this._path
+      this._fullpath = this.path
     }
   }
 
@@ -108,7 +120,7 @@ export class RouteItem implements Route {
     const receivedArgs = args ? Object.keys(args) : []
     const requiredArgs: string[] = []
 
-    this.iterateToRoot(item => item._kind === 'arg' && requiredArgs.push(item._path))
+    this.iterateToRoot(item => item.kind === 'arg' && requiredArgs.push(item.path))
 
     if (
       requiredArgs.length !== receivedArgs.length ||

@@ -20,6 +20,11 @@ describe('Simple', () => {
           }
         })
       }
+    }),
+    someRoute: route({
+      children: {
+        nestRoute: route()
+      }
     })
   }))
 
@@ -41,5 +46,13 @@ describe('Simple', () => {
         .categories.category
         ._.fullpath({ category: 'horror' })
     ).toBe(`/categories/horror`)
+  })
+
+  it('pascalCase to dash-case path', () => {
+    expect(menu.routes.someRoute._.fullpath())
+      .toBe(`/some-route`)
+
+    expect(menu.routes.someRoute.nestRoute._.fullpath())
+      .toBe(`/some-route/nest-route`)
   })
 })

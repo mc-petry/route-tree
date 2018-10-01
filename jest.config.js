@@ -6,7 +6,7 @@ module.exports = {
       tsConfig: './src/__tests__/tsconfig.json'
     }
   },
-  "testMatch": [
+  testMatch: [
     "**/__tests__/**/*test.ts"
   ]
 }
