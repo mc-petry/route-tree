@@ -12,12 +12,14 @@ Construct menu:
 const builder = createMenuBuilder()
 
 // Create tree
-const tree = factory.tree(({ route }) => ({
+const tree = builder.tree(({ route, arg }) => ({
   home: route(),
   users: route({
     children: {
       id: arg({
-        comments: route()
+        children: {
+          comments: route()
+        }
       })
     }
   })
