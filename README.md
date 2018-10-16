@@ -8,7 +8,7 @@ Construct menu:
 
 ```ts
 // Create builder
-const builder = createMenuBuilder()
+const builder = createMenuBuilder(options?: MenuConfig)
 
 // Create tree
 const tree = builder.tree(({ route, arg }) => ({
@@ -36,9 +36,25 @@ menu.routes.users.id._.fullpath({ id: '1' }) // '/users/1'
 menu.routes.users.id.comments._.fullpath({ id: 'mc-petry' }) // '/users/mc-petry/comments'
 ```
 
-## Advanced
+## Configuration
 
-### Find route
+```ts
+interface MenuConfig {
+  /**
+   * Global routes prefix.
+   * @default '/'
+   */
+  basePath?: string
+
+  /**
+   * Use trailing slash on routes
+   * @default false
+   */
+  trailingSlash?: boolean
+}
+```
+
+## Helpers
 
 ```ts
 /**
@@ -48,13 +64,7 @@ menu.routes.users.id.comments._.fullpath({ id: 'mc-petry' }) // '/users/mc-petry
 menu.findRoute(location: string, maxLevel?: number): Route | null
 ```
 
-### Base path
-
-```ts
-createMenuBuilder({ basePath: '/local' })
-```
-
-### Routes meta
+## Routes meta
 
 ```ts
 const menu = builder.build(
@@ -76,7 +86,7 @@ const menu = builder.build(
 menu.routes._.children.filter(route => !route.meta.hidden)
 ```
 
-### Split trees
+## Split trees
 
 ```ts
 const homeTree = builder.tree(...)
@@ -88,7 +98,7 @@ const menu = builder.build({
 })
 ```
 
-## Compatibility
+# Compatibility
 
 All modern environments.\
 IE 11 requires polyfills: `String.startsWith()`
