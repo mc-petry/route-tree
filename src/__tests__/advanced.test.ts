@@ -46,7 +46,8 @@ describe('Advanced', () => {
           children: {
             id: arg({
               children: {
-                comments: route()
+                comments: route(),
+                claps: route()
               }
             })
           }
@@ -59,6 +60,12 @@ describe('Advanced', () => {
 
     expect(menu.routes.articles.id._.children[0])
       .toBe(menu.routes.articles.id.comments._)
+
+    expect(menu.routes.articles.id._.children[0].fullpath({ id: 'how-use-menu-system' }))
+      .toBe('/personal/articles/how-use-menu-system/comments')
+
+    expect(menu.routes.articles.id._.children[1].fullpath({ id: 'how-use-menu-system' }))
+      .toBe('/personal/articles/how-use-menu-system/claps')
   })
 
   it('Meta', () => {
