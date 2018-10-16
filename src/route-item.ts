@@ -27,7 +27,7 @@ export interface Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
   /**
    * Gets the children routes.
    */
-  readonly children: ReadonlyArray<Route<TChildMeta>>
+  readonly children: ReadonlyArray<Route<TChildMeta, any, TArgs>>
 
   /**
    * Gets the route type.
