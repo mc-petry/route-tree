@@ -1,4 +1,4 @@
-import { AllRouteDefinitions, ArgType, RouteType, ZeroArgs } from './types'
+import { AllRouteDefinitions, ArgType, MenuConfig, RouteType, ZeroArgs } from './types'
 
 interface Arguments {
   [key: string]: ArgType
@@ -46,6 +46,7 @@ export class RouteItem implements Route {
   private readonly _fullpath: string
 
   constructor(
+    private readonly _config: MenuConfig,
     private readonly _parent: RouteItem | undefined,
     child: AllRouteDefinitions<any, any>,
     chainKey: string
@@ -80,14 +81,16 @@ export class RouteItem implements Route {
 
     if (this._parent) {
       const parentPath = this._parent._fullpath
-      const divider = parentPath.length > 0 && parentPath[parentPath.length - 1] === '/'
-        ? ''
-        : '/'
+      const divider = parentPath.slice(-1) === '/' ? '' : '/'
 
       this._fullpath = parentPath + divider + this.path
     }
     else {
       this._fullpath = this.path
+    }
+
+    if (this._config.trailingSlash) {
+      this._fullpath += '/'
     }
   }
 

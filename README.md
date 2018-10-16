@@ -1,7 +1,6 @@
 # menu-system
 
-Powerful and simple tool to build a complex menu tree.\
-Use it with TypeScript for full intellisense.
+Powerful and simple tool to build a complex menu tree.
 
 # Usage
 
@@ -12,7 +11,7 @@ Construct menu:
 const builder = createMenuBuilder()
 
 // Create tree
-const tree = factory.tree(({ route }) => ({
+const tree = factory.tree(({ route, arg }) => ({
   home: route(),
   users: route({
     children: {
@@ -96,5 +95,5 @@ IE 11 requires polyfills: `String.startsWith()`
 
 ## Publishing
 
-`npm run build`
+`npm run build`\
 `npm publish dist`

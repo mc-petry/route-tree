@@ -39,8 +39,15 @@ export type AllRouteDefinitions<T, TMeta> =
 export interface MenuConfig {
   /**
    * Global routes prefix.
+   * @default '/'
    */
   basePath?: string
+
+  /**
+   * Use trailing slash on routes
+   * @default false
+   */
+  trailingSlash?: boolean
 }
 
 export type ZeroArgs = 'noargs'

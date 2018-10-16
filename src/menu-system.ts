@@ -2,7 +2,7 @@ import { Route, RouteItem } from './route-item'
 import { AllRouteDefinitions, ArgDefinition, ArgKind, ArgType, MenuConfig, RouteDefinition, RouteKind, ZeroArgs } from './types'
 
 /**
- * Allows to detect arguments count
+ * Allows to detect arguments count.
  */
 type ArgsCounter<T> = { [P in keyof T]: ArgType }
 
@@ -48,13 +48,13 @@ interface CreateRoutesArgs {
 
 export interface MenuSystem<T> {
   /**
-   * Routes tree
+   * Gets the routes tree.
    */
   readonly routes: Routes<T, undefined>
 
   /**
    * Returns the route that match specified location.
-   * Otherwise returns null
+   * Otherwise returns null.
    *
    * @param location Search path
    * @param maxDepth Maximum search depth. Depth 0 equals to root item
@@ -63,35 +63,22 @@ export interface MenuSystem<T> {
 }
 
 class MenuSystemImpl<T> implements MenuSystem<T> {
-  private static build(parent: Routes, tree: RouteDefinitions<any, any>) {
-    if (!tree) {
-      return
-    }
-
-    for (const key of Object.keys(tree)) {
-      const value = tree[key]
-
-      parent[key] = {
-        _: new RouteItem(parent._ as RouteItem, value, key)
-      }
-
-      this.build(parent[key] as Routes, value.children)
-    }
-  }
-
   readonly routes: Routes<T>
 
-  constructor(tree: RouteDefinitions<T, any>, config: MenuConfig | undefined) {
+  constructor(
+    tree: RouteDefinitions<T, any>,
+    private readonly _config: MenuConfig = {}
+  ) {
     const root: RouteDefinition<any> & RouteKind = {
       kind: 'route',
-      path: config && config.basePath || '/'
+      path: _config && _config.basePath || '/'
     }
 
     this.routes = {
-      _: new RouteItem(undefined, root, '') as Route
+      _: new RouteItem(_config, undefined, root, '') as Route
     } as Routes<T>
 
-    MenuSystemImpl.build(this.routes as Routes, tree)
+    this.build(this.routes as Routes, tree)
   }
 
   findRoute(location: string, maxLevel?: number): Route | null {
@@ -150,15 +137,31 @@ class MenuSystemImpl<T> implements MenuSystem<T> {
 
     return item
   }
+
+  private build(parent: Routes, tree: RouteDefinitions<any, any>) {
+    if (!tree) {
+      return
+    }
+
+    for (const key of Object.keys(tree)) {
+      const value = tree[key]
+
+      parent[key] = {
+        _: new RouteItem(this._config, parent._ as RouteItem, value, key)
+      }
+
+      this.build(parent[key] as Routes, value.children)
+    }
+  }
 }
 
 /**
- * Creates new menu builder
+ * Creates a new menu builder.
  */
 export const createMenuBuilder = (config?: MenuConfig) => {
   return {
     /**
-     * Creates new tree or sub tree
+     * Creates a new tree or sub tree.
      */
     tree: <T extends RouteDefinitions<any, any>>(fn: (data: CreateRoutesArgs) => T): T =>
       fn({
@@ -174,7 +177,7 @@ export const createMenuBuilder = (config?: MenuConfig) => {
       }),
 
     /**
-     * Builds menu from tree
+     * Builds a menu from the tree.
      */
     build: <T extends RouteDefinitions<any, any>>(tree: T): MenuSystem<T> => {
       return new MenuSystemImpl<T>(tree, config)

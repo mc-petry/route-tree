@@ -145,7 +145,7 @@ describe('Advanced', () => {
     expect(menu.findRoute('/personal/'))
       .toBe(menu.routes._)
 
-    expect(menu.findRoute('/personal/users/1'))
+    expect(menu.findRoute('/personal/users/1/'))
       .toBe(menu.routes.users.id._)
 
     // ─────────────────────────────────────────────────────────────────
@@ -162,5 +162,37 @@ describe('Advanced', () => {
 
     expect(menu.findRoute('/personal/users/1/comments', 3))
       .toBe(menu.routes.users.id.comments._)
+  })
+
+  it('Trailing slash', () => {
+    const mb = createMenuBuilder({
+      basePath: '/local',
+      trailingSlash: true
+    })
+
+    const menu = mb.build(
+      mb.tree(
+        ({ route, arg }) => ({
+          users: route({
+            children: {
+              id: arg({
+                children: {
+                  rating: route()
+                }
+              })
+            }
+          })
+        })
+      )
+    )
+
+    expect(menu.routes._.fullpath())
+      .toBe('/local/')
+
+    expect(menu.routes.users._.fullpath())
+      .toBe('/local/users/')
+
+    expect(menu.routes.users.id.rating._.fullpath({ id: 5 }))
+      .toBe('/local/users/5/rating/')
   })
 })
