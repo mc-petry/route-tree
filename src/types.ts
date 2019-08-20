@@ -10,7 +10,7 @@ export type RouteType = RouteKind['kind'] | ArgKind['kind']
 
 interface BaseRouteDefinition<T, TMeta> {
   /**
-   * Chidlren routes.
+   * Children routes.
    */
   children?: T
 

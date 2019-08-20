@@ -17,9 +17,9 @@ interface RouteChild<TMeta, TChildMeta, TArgs> {
 type Routes<TChildren = any, TMeta = any, TArgs = ZeroArgs> =
   RoutesTree<TChildren, TArgs> &
   RouteChild<
-  TMeta,
-  TChildren extends RouteDefinitions<any, infer TChildMeta> ? TChildMeta : undefined,
-  TArgs
+    TMeta,
+    TChildren extends RouteDefinitions<any, infer TChildMeta> ? TChildMeta : undefined,
+    TArgs
   >
 
 type RoutesTreeChildIsArg<T, TArgs, TName> = T extends ArgDefinition<infer TChildren, infer TMeta> & ArgKind
@@ -101,7 +101,7 @@ class MenuSystemImpl<T> implements MenuSystem<T> {
       return root as Route
     }
 
-    location = location.substr(root.path.length + 1)
+    location = location.substr(root.path.length === 1 ? 1 : root.path.length + 1)
 
     if (location.slice(-1) === '/') {
       location = location.slice(0, -1)

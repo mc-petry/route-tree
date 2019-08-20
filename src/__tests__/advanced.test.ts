@@ -110,6 +110,16 @@ describe('Advanced', () => {
   })
 
   it('Find child', () => {
+    const simpleBuilder = createMenuBuilder()
+    const simpleMenu = simpleBuilder.build(
+      simpleBuilder.tree(({ route }) => ({
+        nodes: route()
+      }))
+    )
+
+    expect(simpleMenu.findRoute('/nodes'))
+      .toBe(simpleMenu.routes.nodes._)
+
     const menu = builder.build(
       builder.tree(({ route, arg }) => ({
         users: route({
