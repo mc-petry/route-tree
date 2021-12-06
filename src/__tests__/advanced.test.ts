@@ -1,76 +1,67 @@
-import { createMenuBuilder } from '..'
+import { routeBuilder } from '..'
 
 describe('Advanced', () => {
-  const builder = createMenuBuilder({
-    basePath: '/personal'
+  const builder = routeBuilder({
+    basePath: '/personal',
   })
 
-  it('Split sub trees', () => {
-    const articlesTree = builder.tree(({ route, arg }) => ({
+  it('Splitted subtrees', () => {
+    const articlesTree = builder.tree(({ path: route, param: arg }) => ({
       article: route({
         children: {
-          id: arg()
-        }
-      })
+          id: arg(),
+        },
+      }),
     }))
 
-    const usersTree = builder.tree(({ route, arg }) => ({
+    const usersTree = builder.tree(({ path: route, param: arg }) => ({
       users: route({
         children: {
           id: arg({
             children: {
               topics: route(),
-              comments: route()
-            }
-          })
-        }
-      })
+              comments: route(),
+            },
+          }),
+        },
+      }),
     }))
 
     const menu = builder.build({
       ...articlesTree,
-      ...usersTree
+      ...usersTree,
     })
 
-    expect(menu.routes.article.id._.fullpath({ id: '25' }))
-      .toBe(`/personal/article/25`)
-
-    expect(menu.routes.users.id.comments._.fullpath({ id: '1' }))
-      .toBe(`/personal/users/1/comments`)
+    expect(menu.article.id.$.route({ id: '25' })).toBe(`/personal/article/25`)
+    expect(menu.users.id.comments.$.route({ id: '1' })).toBe(`/personal/users/1/comments`)
   })
 
   it('Children', () => {
-    const menu = builder.build(
-      builder.tree(({ route, arg }) => ({
+    const routes = builder.build(
+      builder.tree(({ path: route, param: arg }) => ({
         articles: route({
           children: {
             id: arg({
               children: {
                 comments: route(),
-                claps: route()
-              }
-            })
-          }
+                claps: route(),
+              },
+            }),
+          },
         }),
-        users: route()
+        users: route(),
       }))
     )
 
-    expect(menu.routes._.children.length).toBe(2)
-
-    expect(menu.routes.articles.id._.children[0])
-      .toBe(menu.routes.articles.id.comments._)
-
-    expect(menu.routes.articles.id._.children[0].fullpath({ id: 'how-use-menu-system' }))
-      .toBe('/personal/articles/how-use-menu-system/comments')
-
-    expect(menu.routes.articles.id._.children[1].fullpath({ id: 'how-use-menu-system' }))
-      .toBe('/personal/articles/how-use-menu-system/claps')
+    expect(routes.$.children.length).toBe(2)
+    expect(routes.articles.id.$.children[0]).toBe(routes.articles.id.comments.$)
+    expect(routes.articles.id.$.children[0].route({ id: 'article' })).toBe('/personal/articles/article/comments')
+    expect(routes.articles.id.$.children[1].route({ id: 'article' })).toBe('/personal/articles/article/claps')
   })
 
   it('Meta', () => {
-    const menu = builder.build(
-      builder.tree(({ route }) => ({
+    const routes = builder.build(
+      builder.tree(({ path: route }) => ({
         home: route({
           meta: { theme: 'light' },
           children: {
@@ -79,137 +70,103 @@ describe('Advanced', () => {
               children: {
                 shared: route({
                   meta: {
-                    prop: '1'
-                  }
+                    prop: '1',
+                  },
                 }),
                 personal: route({
                   meta: {
-                    prop: '2'
-                  }
-                })
-              }
-            })
-          }
+                    prop: '2',
+                  },
+                }),
+              },
+            }),
+          },
         }),
         about: route({
-          meta: { theme: 'dark' }
-        })
+          meta: { theme: 'dark' },
+        }),
       }))
     )
 
     // Direct meta
-    expect(menu.routes.home._.meta.theme).toBe('light')
-    expect(menu.routes.about._.meta.theme).toBe('dark')
-    expect(menu.routes.home.projects._.meta.visible).toBeFalsy()
+    expect(routes.home.$.meta.theme).toBe('light')
+    expect(routes.about.$.meta.theme).toBe('dark')
+    expect(routes.home.projects.$.meta.visible).toBeFalsy()
 
     // Children meta
-    expect(menu.routes._.children[0].meta.theme).toBe('light')
-    expect(menu.routes._.children[1].meta.theme).toBe('dark')
-    expect(menu.routes.home.projects._.children[0].meta.prop).toBe('1')
-    expect(menu.routes.home.projects._.children[1].meta.prop).toBe('2')
+    expect(routes.$.children[0].meta.theme).toBe('light')
+    expect(routes.$.children[1].meta.theme).toBe('dark')
+    expect(routes.home.projects.$.children[0].meta.prop).toBe('1')
+    expect(routes.home.projects.$.children[1].meta.prop).toBe('2')
   })
 
   it('Find child', () => {
-    const simpleBuilder = createMenuBuilder()
-    const simpleMenu = simpleBuilder.build(
-      simpleBuilder.tree(({ route }) => ({
-        nodes: route()
+    const simpleBuilder = routeBuilder()
+    const simpleRoutes = simpleBuilder.build(
+      simpleBuilder.tree(({ path: route }) => ({
+        nodes: route(),
       }))
     )
 
-    expect(simpleMenu.findRoute('/nodes'))
-      .toBe(simpleMenu.routes.nodes._)
+    expect(simpleRoutes.$.find('/nodes')).toBe(simpleRoutes.nodes.$)
 
-    const menu = builder.build(
-      builder.tree(({ route, arg }) => ({
+    const routes = builder.build(
+      builder.tree(({ path: route, param: arg }) => ({
         users: route({
           children: {
             id: arg({
               children: {
                 view: route(),
-                comments: route()
-              }
-            })
-          }
-        })
+                comments: route(),
+              },
+            }),
+          },
+        }),
       }))
     )
 
-    expect(menu.findRoute('/personal'))
-      .toBe(menu.routes._)
+    expect(routes.$.find('/personal')).toBe(routes.$)
+    expect(routes.$.find('/personal/users')).toBe(routes.users.$)
+    expect(routes.$.find('/personal/users/1')).toBe(routes.users.id.$)
+    expect(routes.$.find('/personal/users/1/comments')).toBe(routes.users.id.comments.$)
 
-    expect(menu.findRoute('/personal/users'))
-      .toBe(menu.routes.users._)
-
-    expect(menu.findRoute('/personal/users/1'))
-      .toBe(menu.routes.users.id._)
-
-    expect(menu.findRoute('/personal/users/1/comments'))
-      .toBe(menu.routes.users.id.comments._)
-
-    // ─────────────────────────────────────────────────────────────────
     // Fake
+    expect(routes.$.find('/personal/users/1/fake')).toBe(null)
+    expect(routes.$.find('/personal/fake')).toBe(null)
 
-    expect(menu.findRoute('/personal/users/1/fake'))
-      .toBe(null)
-
-    expect(menu.findRoute('/personal/fake'))
-      .toBe(null)
-
-    // ─────────────────────────────────────────────────────────────────
     // Trailing slash
+    expect(routes.$.find('/personal/')).toBe(routes.$)
+    expect(routes.$.find('/personal/users/1/')).toBe(routes.users.id.$)
 
-    expect(menu.findRoute('/personal/'))
-      .toBe(menu.routes._)
-
-    expect(menu.findRoute('/personal/users/1/'))
-      .toBe(menu.routes.users.id._)
-
-    // ─────────────────────────────────────────────────────────────────
     // Max level
-
-    expect(menu.findRoute('/personal/users/1/comments', 0))
-      .toBe(menu.routes._)
-
-    expect(menu.findRoute('/personal/users/1/comments', 1))
-      .toBe(menu.routes.users._)
-
-    expect(menu.findRoute('/personal/users/1/comments', 2))
-      .toBe(menu.routes.users.id._)
-
-    expect(menu.findRoute('/personal/users/1/comments', 3))
-      .toBe(menu.routes.users.id.comments._)
+    expect(routes.$.find('/personal/users/1/comments', 0)).toBe(routes.$)
+    expect(routes.$.find('/personal/users/1/comments', 1)).toBe(routes.users.$)
+    expect(routes.$.find('/personal/users/1/comments', 2)).toBe(routes.users.id.$)
+    expect(routes.$.find('/personal/users/1/comments', 3)).toBe(routes.users.id.comments.$)
   })
 
   it('Trailing slash', () => {
-    const mb = createMenuBuilder({
+    const mb = routeBuilder({
       basePath: '/local',
-      trailingSlash: true
+      trailingSlash: true,
     })
 
     const menu = mb.build(
-      mb.tree(
-        ({ route, arg }) => ({
-          users: route({
-            children: {
-              id: arg({
-                children: {
-                  rating: route()
-                }
-              })
-            }
-          })
-        })
-      )
+      mb.tree(({ path, param }) => ({
+        users: path({
+          children: {
+            id: param({
+              children: {
+                rating: path(),
+              },
+            }),
+          },
+        }),
+      }))
     )
 
-    expect(menu.routes._.fullpath())
-      .toBe('/local/')
-
-    expect(menu.routes.users._.fullpath())
-      .toBe('/local/users/')
-
-    expect(menu.routes.users.id.rating._.fullpath({ id: 5 }))
-      .toBe('/local/users/5/rating/')
+    expect(menu.$.route()).toBe('/local/')
+    expect(menu.users.$.route()).toBe('/local/users/')
+    expect(menu.users.id.rating.$.route({ id: 5 })).toBe('/local/users/5/rating/')
   })
 })

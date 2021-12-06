@@ -1,23 +1,12 @@
-import { AllRouteDefinitions, ArgType, MenuConfig, RouteType, ZeroArgs } from './types'
+import { AllRouteDefinitions, NoArgs, PathType, RouteTreeConfig } from './types'
 
-interface Arguments {
-  [key: string]: ArgType
-}
+type FullpathType<TArgs> = TArgs extends NoArgs ? () => string : (args: TArgs) => string
 
-type FullpathType<TArgs> = TArgs extends ZeroArgs
-  ? () => string
-  : (args: TArgs) => string
-
-export interface Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
-  /**
-   * Builds the full path.
-   */
-  readonly fullpath: FullpathType<TArgs>
-
-  /**
-   * Gets the relative path.
-   */
-  readonly path: string
+/**
+ * @internal
+ */
+export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
+  private static readonly paramPlaceHolder = (name: string) => `:${name}`
 
   /**
    * Gets the custom route attributes defined in RouteDefinition.
@@ -27,112 +16,129 @@ export interface Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
   /**
    * Gets the children routes.
    */
-  readonly children: ReadonlyArray<Route<TChildMeta, any, TArgs>>
+  readonly children: Route<TChildMeta, any, TArgs>[] = []
+
+  /**
+   * Gets the relative path.
+   */
+  readonly path: string
 
   /**
    * Gets the route type.
    */
-  readonly kind: RouteType
-}
+  readonly type: PathType
 
-export class RouteItem implements Route {
-  private static readonly argPlaceHolder = (name: string) => `:${name}`
-
-  readonly meta: any
-  readonly children: Route[] = []
-  readonly path: string
-  readonly kind: RouteType
-
-  private readonly _fullpath: string
+  private readonly _route: string
 
   constructor(
-    private readonly _config: MenuConfig,
-    private readonly _parent: RouteItem | undefined,
+    private readonly _config: RouteTreeConfig,
+    private readonly _parent: Route | undefined,
     child: AllRouteDefinitions<any, any>,
     chainKey: string
   ) {
     if (_parent) {
-      _parent.children.push(this)
+      _parent.children.push(this as Route<any>)
     }
 
-    this.kind = child.kind
+    this.type = child.type
     this.meta = child.meta
 
-    //
-    // ─── GENERATE RELATIVE PATH ──────────────────────────────────────
-    //
-
-    switch (child.kind) {
-      case 'route':
-        this.path = child.path || chainKey.replace(/[A-Z]/g, m => '-' + m.toLowerCase())
+    // Generate relative path
+    switch (child.type) {
+      case PathType.Path:
+        this.path = child.path || chainKey.replace(/[A-Z]/g, x => '-' + x.toLowerCase())
         break
 
-      case 'arg':
-        this.path = RouteItem.argPlaceHolder(chainKey)
+      case PathType.Param:
+        this.path = Route.paramPlaceHolder(chainKey)
         break
 
       default:
         throw new Error()
     }
 
-    //
-    // ─── GENERATE FULLPATH ───────────────────────────────────────────
-    //
-
+    // Generate route
     if (this._parent) {
-      const parentPath = this._parent._fullpath
+      const parentPath = this._parent._route
       const divider = parentPath.slice(-1) === '/' ? '' : '/'
 
-      this._fullpath = parentPath + divider + this.path
-    }
-    else {
-      this._fullpath = this.path
+      this._route = parentPath + divider + this.path
+    } else {
+      this._route = this.path
     }
 
     if (this._config.trailingSlash) {
-      this._fullpath += '/'
+      this._route += '/'
     }
   }
 
-  fullpath(args?: Arguments): string {
-    let fp = this._fullpath
-
-    if (process.env.NODE_ENV !== 'production') {
-      this.checkArguments(args)
-    }
+  /**
+   * Builds the full route.
+   */
+  readonly route = ((args?: any) => {
+    let fp = this._route
 
     if (args) {
       for (const key of Object.keys(args)) {
-        fp = fp.replace(RouteItem.argPlaceHolder(key), args[key].toString())
+        fp = fp.replace(Route.paramPlaceHolder(key), args[key].toString())
       }
     }
 
     return fp
-  }
+  }) as FullpathType<TArgs>
 
-  private iterateToRoot(fn: (item: RouteItem) => void) {
-    let current: RouteItem | undefined = this
+  /**
+   * Returns a child route that matches specified location.
+   *
+   * @param location Search path
+   * @param maxDepth Maximum search depth. Depth 0 equals to root item
+   */
+  find(location: string, maxLevel?: number): Route | null {
+    const root = this as Route<any>
 
-    while (current) {
-      fn(current)
-      current = current._parent
+    if (!location.startsWith(root.path)) {
+      return null
     }
-  }
 
-  private checkArguments(args?: Arguments) {
-    const receivedArgs = args ? Object.keys(args) : []
-    const requiredArgs: string[] = []
-
-    this.iterateToRoot(item => item.kind === 'arg' && requiredArgs.push(item.path))
-
-    if (
-      requiredArgs.length !== receivedArgs.length ||
-      receivedArgs.some(x => !requiredArgs.includes(RouteItem.argPlaceHolder(x)))
-    ) {
-      throw new TypeError(
-        `Received arguments: [${receivedArgs.join(', ')}]. ` +
-        `Required arguments: [${requiredArgs.map(x => x.substr(1)).join(', ')}]`
-      )
+    // Check is root
+    if (location === root.path || location === root.path + '/' || maxLevel === 0) {
+      return root
     }
+
+    location = location.substr(root.path.length === 1 ? 1 : root.path.length + 1)
+
+    if (location.slice(-1) === '/') {
+      location = location.slice(0, -1)
+    }
+
+    const parts = location.split('/')
+
+    let item: Route = root as Route
+
+    for (let i = 0; i < parts.length; i++) {
+      for (let j = 0; j < item.children.length; j++) {
+        const child = item.children[j]
+
+        if (child.type === PathType.Path && child.path === parts[i]) {
+          item = child
+          break
+        }
+
+        if (child.type === PathType.Param) {
+          item = child
+          break
+        }
+
+        if (j === item.children.length - 1) {
+          return null
+        }
+      }
+
+      if (maxLevel && maxLevel === i + 1) {
+        return item
+      }
+    }
+
+    return item
   }
 }

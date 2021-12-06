@@ -1,13 +1,14 @@
-export interface RouteKind {
-  kind: 'route'
+/**
+ * @internal
+ */
+export enum PathType {
+  Path,
+  Param,
 }
 
-export interface ArgKind {
-  kind: 'arg'
-}
-
-export type RouteType = RouteKind['kind'] | ArgKind['kind']
-
+/**
+ * @internal
+ */
 interface BaseRouteDefinition<T, TMeta> {
   /**
    * Children routes.
@@ -16,27 +17,45 @@ interface BaseRouteDefinition<T, TMeta> {
 
   /**
    * Custom route attributes.
-   * Useful to store specific params and use it when iterate over parents children.
+   *
+   * Useful for storing specific parameters and using them when iterating over parent children.
    */
   meta?: TMeta
 }
 
-export interface RouteDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
+/**
+ * @internal
+ */
+export interface PathDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
   /**
    * Path relative to parent. By default paths equals to key.
+   *
    * `pascalCase` keys will be transformed to `dash-case` routes.
    */
   path?: string
+
+  /**
+   * @internal
+   */
+  type: PathType.Path
 }
 
-export interface ArgDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
+/**
+ * @internal
+ */
+export interface ArgumentDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
+  /**
+   * @internal
+   */
+  type: PathType.Param
 }
 
-export type AllRouteDefinitions<T, TMeta> =
-  (RouteDefinition<T, TMeta> & RouteKind) |
-  (ArgDefinition<T, TMeta> & ArgKind)
+/**
+ * @internal
+ */
+export type AllRouteDefinitions<T, TMeta> = PathDefinition<T, TMeta> | ArgumentDefinition<T, TMeta>
 
-export interface MenuConfig {
+export interface RouteTreeConfig {
   /**
    * Global routes prefix.
    * @default '/'
@@ -50,6 +69,6 @@ export interface MenuConfig {
   trailingSlash?: boolean
 }
 
-export type ZeroArgs = 'noargs'
+export type NoArgs = undefined //'noargs'
 
-export type ArgType = string | number
+export type ParamType = string | number

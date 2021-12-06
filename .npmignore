@@ -1,0 +1,10 @@
+node_modules
+src
+.eslintrc.json
+.gitignore
+.prettierrc.json
+jest.config.js
+pnpm-lock.yaml
+rollup.config.ts
+tsconfig.json
+vite.config.ts

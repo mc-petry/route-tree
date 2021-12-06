@@ -1,58 +1,46 @@
-import { createMenuBuilder } from '..'
+import { routeBuilder } from '..'
 
 describe('Simple', () => {
-  const builder = createMenuBuilder()
+  const builder = routeBuilder()
 
-  const tree = builder.tree(({ route, arg }) => ({
-    categories: route({
+  const tree = builder.tree(({ path, param }) => ({
+    categories: path({
       children: {
-        category: arg({
+        category: param({
           children: {
-            movies: route({
+            movies: path({
               children: {
-                movie: arg({
+                movie: param({
                   children: {
-                    details: route()
-                  }
-                })
-              }
-            })
-          }
-        })
-      }
+                    details: path(),
+                  },
+                }),
+              },
+            }),
+          },
+        }),
+      },
     }),
-    someRoute: route({
+    someRoute: path({
       children: {
-        nestRoute: route()
-      }
-    })
+        nestRoute: path(),
+      },
+    }),
   }))
 
   const menu = builder.build(tree)
 
   it('Arguments', () => {
-    expect(
-      menu.routes
-        .categories.category
-        .movies.movie
-        .details
-        ._.fullpath({ category: 'comedy', movie: '1' })
-    ).toBe(`/categories/comedy/movies/1/details`)
+    expect(menu.categories.category.movies.movie.details.$.route({ category: 'comedy', movie: '1' })).toBe(
+      `/categories/comedy/movies/1/details`
+    )
 
-    expect(menu.routes._.fullpath()).toBe(`/`)
-
-    expect(
-      menu.routes
-        .categories.category
-        ._.fullpath({ category: 'horror' })
-    ).toBe(`/categories/horror`)
+    expect(menu.$.route()).toBe(`/`)
+    expect(menu.categories.category.$.route({ category: 'horror' })).toBe(`/categories/horror`)
   })
 
   it('pascalCase to dash-case path', () => {
-    expect(menu.routes.someRoute._.fullpath())
-      .toBe(`/some-route`)
-
-    expect(menu.routes.someRoute.nestRoute._.fullpath())
-      .toBe(`/some-route/nest-route`)
+    expect(menu.someRoute.$.route()).toBe(`/some-route`)
+    expect(menu.someRoute.nestRoute.$.route()).toBe(`/some-route/nest-route`)
   })
 })

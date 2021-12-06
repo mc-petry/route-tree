@@ -1,3 +1,3 @@
-import { createMenuBuilder } from './menu-system'
+import { routeBuilder } from './menu-system'
 
-export { createMenuBuilder }
+export { routeBuilder }
