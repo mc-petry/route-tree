@@ -1,11 +1,8 @@
-import { AllRouteDefinitions, NoArgs, PathType, RouteTreeConfig } from './types'
+import { NoArgs } from './models/no-args'
+import { AllRouteDefinitions, PathType } from './models/route-definitions'
+import { RouteTreeConfig } from './models/route-tree-config'
 
-type FullpathType<TArgs> = TArgs extends NoArgs ? () => string : (args: TArgs) => string
-
-/**
- * @internal
- */
-export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
+export class Route<TMeta = undefined, TArgs = any> {
   private static readonly paramPlaceHolder = (name: string) => `:${name}`
 
   /**
@@ -16,7 +13,7 @@ export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
   /**
    * Gets the children routes.
    */
-  readonly children: Route<TChildMeta, any, TArgs>[] = []
+  readonly children: Route<TMeta, TArgs>[] = []
 
   /**
    * Gets the relative path.
@@ -28,7 +25,10 @@ export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
    */
   readonly type: PathType
 
-  private readonly _route: string
+  /**
+   * Gets the route pattern.
+   */
+  readonly pattern: string
 
   constructor(
     private readonly _config: RouteTreeConfig,
@@ -57,26 +57,26 @@ export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
         throw new Error()
     }
 
-    // Generate route
+    // Generate pattern
     if (this._parent) {
-      const parentPath = this._parent._route
+      const parentPath = this._parent.pattern
       const divider = parentPath.slice(-1) === '/' ? '' : '/'
 
-      this._route = parentPath + divider + this.path
+      this.pattern = parentPath + divider + this.path
     } else {
-      this._route = this.path
+      this.pattern = this.path
     }
 
     if (this._config.trailingSlash) {
-      this._route += '/'
+      this.pattern += '/'
     }
   }
 
   /**
-   * Builds the full route.
+   * Builds a full route.
    */
   readonly route = ((args?: any) => {
-    let fp = this._route
+    let fp = this.pattern
 
     if (args) {
       for (const key of Object.keys(args)) {
@@ -85,33 +85,37 @@ export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
     }
 
     return fp
-  }) as FullpathType<TArgs>
+  }) as TArgs extends NoArgs ? () => string : (args: TArgs) => string
 
   /**
    * Returns a child route that matches specified location.
-   *
-   * @param location Search path
-   * @param maxDepth Maximum search depth. Depth 0 equals to root item
    */
-  find(location: string, maxLevel?: number): Route | null {
+  find(
+    pathname: string,
+    options: {
+      /**
+       * Maximum search depth. Depth 0 equals to root item.
+       */
+      depth?: number
+    } = {}
+  ): Route | null {
     const root = this as Route<any>
 
-    if (!location.startsWith(root.path)) {
+    if (!pathname.startsWith(root.path)) {
       return null
     }
 
-    // Check is root
-    if (location === root.path || location === root.path + '/' || maxLevel === 0) {
+    if (pathname === root.path || pathname === root.path + '/' || options.depth === 0) {
       return root
     }
 
-    location = location.substr(root.path.length === 1 ? 1 : root.path.length + 1)
+    pathname = pathname.substring(root.path.length === 1 ? 1 : root.path.length + 1)
 
-    if (location.slice(-1) === '/') {
-      location = location.slice(0, -1)
+    if (pathname.slice(-1) === '/') {
+      pathname = pathname.slice(0, -1)
     }
 
-    const parts = location.split('/')
+    const parts = pathname.split('/')
 
     let item: Route = root as Route
 
@@ -134,7 +138,7 @@ export class Route<TMeta = undefined, TChildMeta = undefined, TArgs = any> {
         }
       }
 
-      if (maxLevel && maxLevel === i + 1) {
+      if (options.depth === i + 1) {
         return item
       }
     }

@@ -1,6 +1,6 @@
-# menu-system
+# route-tree
 
-Powerful and simple tool to build a complex menu tree.
+Powerful and simple tool to build a complex route tree.
 
 # Usage
 
@@ -8,7 +8,7 @@ Construct menu:
 
 ```ts
 // Create builder
-const builder = createMenuBuilder(options?: MenuConfig)
+const builder = routeBuilder(options)
 
 // Create tree
 const tree = builder.tree(({ route, arg }) => ({
@@ -17,29 +17,36 @@ const tree = builder.tree(({ route, arg }) => ({
     children: {
       id: arg({
         children: {
-          comments: route()
-        }
-      })
-    }
-  })
+          comments: route(),
+        },
+      }),
+    },
+  }),
 }))
 
-// Build tree
-const menu = builder.build(tree)
+// Build routes
+const routes = builder.build(tree)
 ```
 
 Use it anywhere:
 
 ```ts
-menu.routes.home._.fullpath() // '/home'
-menu.routes.users.id._.fullpath({ id: '1' }) // '/users/1'
-menu.routes.users.id.comments._.fullpath({ id: 'mc-petry' }) // '/users/mc-petry/comments'
+routes.home.$.fullpath() // `/home`
+routes.users.id.$.fullpath({ id: '1' }) // `/users/1`
+routes.users.id.comments.$.fullpath({ id: 'mc-petry' }) // `/users/mc-petry/comments`
+```
+
+Compatible with react-router:
+
+```ts
+routes.users.id.$.path // `:id`
+routes.users.id.$.pattern // `/users/:id`
 ```
 
 ## Configuration
 
 ```ts
-interface MenuConfig {
+interface RouteTreeConfig {
   /**
    * Global routes prefix.
    * @default '/'
@@ -58,10 +65,9 @@ interface MenuConfig {
 
 ```ts
 /**
- * Returns route that match specified location.
- * Otherwise returns null
+ * Returns route that match specified pathname.
  */
-menu.findRoute(location: string, maxLevel?: number): Route | null
+routes.$.find(pathname: string, options?: { depth?: number }): Route | null
 ```
 
 ## Routes meta
@@ -71,14 +77,14 @@ const menu = builder.build(
   builder.tree(({ route }) => ({
     home: route({
       meta: {
-        hidden: true
-      }
+        hidden: true,
+      },
     }),
     about: route({
       meta: {
-        hidden: false
-      }
-    })
+        hidden: false,
+      },
+    }),
   }))
 )
 
@@ -97,15 +103,3 @@ const menu = builder.build({
   ...usersTree
 })
 ```
-
-# Compatibility
-
-All modern environments.\
-IE 11 requires polyfills: `String.startsWith()`
-
-# Development
-
-## Publishing
-
-`npm run build`\
-`npm publish dist`

@@ -2,9 +2,9 @@
   "name": "@mc-petry/route-tree",
   "version": "1.0.0",
   "description": "Typed routes management",
-  "main": "dist/useform.cjs.js",
-  "module": "dist/useform.es.js",
-  "typings": "dist/useform.d.ts",
+  "main": "dist/route-tree.cjs.js",
+  "module": "dist/route-tree.es.js",
+  "typings": "dist/route-tree.d.ts",
   "scripts": {
     "test": "jest",
     "pack": "node pack.js",

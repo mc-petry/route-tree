@@ -1,11 +1,68 @@
 import { routeBuilder } from '..'
 
+describe('Generation', () => {
+  const builder = routeBuilder()
+
+  const tree = builder.tree(({ path, param }) => ({
+    categories: path({
+      children: {
+        category: param({
+          children: {
+            movies: path({
+              children: {
+                movie: param({
+                  children: {
+                    details: path(),
+                  },
+                }),
+              },
+            }),
+          },
+        }),
+      },
+    }),
+    someRoute: path({
+      children: {
+        nestRoute: path(),
+      },
+    }),
+    customPath: path({
+      path: 'renamed',
+      children: {
+        nest: param(),
+      },
+    }),
+  }))
+
+  const routes = builder.build(tree)
+
+  test('Parameters', () => {
+    expect(routes.categories.category.movies.movie.details.$.route({ category: 'comedy', movie: '1' })).toBe(
+      `/categories/comedy/movies/1/details`
+    )
+
+    expect(routes.$.route()).toBe(`/`)
+    expect(routes.categories.category.$.route({ category: 'horror' })).toBe(`/categories/horror`)
+  })
+
+  test('pascalCase to dash-case path', () => {
+    expect(routes.someRoute.$.route()).toBe(`/some-route`)
+    expect(routes.someRoute.nestRoute.$.route()).toBe(`/some-route/nest-route`)
+  })
+
+  test('Pattern & custom path', () => {
+    expect(routes.categories.category.movies.movie.$.path).toBe(`:movie`)
+    expect(routes.categories.category.movies.movie.$.pattern).toBe(`/categories/:category/movies/:movie`)
+    expect(routes.customPath.nest.$.pattern).toBe(`/renamed/:nest`)
+  })
+})
+
 describe('Advanced', () => {
   const builder = routeBuilder({
     basePath: '/personal',
   })
 
-  it('Splitted subtrees', () => {
+  test('Splitted subtrees', () => {
     const articlesTree = builder.tree(({ path: route, param: arg }) => ({
       article: route({
         children: {
@@ -36,7 +93,7 @@ describe('Advanced', () => {
     expect(menu.users.id.comments.$.route({ id: '1' })).toBe(`/personal/users/1/comments`)
   })
 
-  it('Children', () => {
+  test('Children', () => {
     const routes = builder.build(
       builder.tree(({ path: route, param: arg }) => ({
         articles: route({
@@ -59,7 +116,7 @@ describe('Advanced', () => {
     expect(routes.articles.id.$.children[1].route({ id: 'article' })).toBe('/personal/articles/article/claps')
   })
 
-  it('Meta', () => {
+  test('Meta', () => {
     const routes = builder.build(
       builder.tree(({ path: route }) => ({
         home: route({
@@ -67,18 +124,6 @@ describe('Advanced', () => {
           children: {
             projects: route({
               meta: { visible: false },
-              children: {
-                shared: route({
-                  meta: {
-                    prop: '1',
-                  },
-                }),
-                personal: route({
-                  meta: {
-                    prop: '2',
-                  },
-                }),
-              },
             }),
           },
         }),
@@ -92,15 +137,9 @@ describe('Advanced', () => {
     expect(routes.home.$.meta.theme).toBe('light')
     expect(routes.about.$.meta.theme).toBe('dark')
     expect(routes.home.projects.$.meta.visible).toBeFalsy()
-
-    // Children meta
-    expect(routes.$.children[0].meta.theme).toBe('light')
-    expect(routes.$.children[1].meta.theme).toBe('dark')
-    expect(routes.home.projects.$.children[0].meta.prop).toBe('1')
-    expect(routes.home.projects.$.children[1].meta.prop).toBe('2')
   })
 
-  it('Find child', () => {
+  test('Find child', () => {
     const simpleBuilder = routeBuilder()
     const simpleRoutes = simpleBuilder.build(
       simpleBuilder.tree(({ path: route }) => ({
@@ -139,13 +178,13 @@ describe('Advanced', () => {
     expect(routes.$.find('/personal/users/1/')).toBe(routes.users.id.$)
 
     // Max level
-    expect(routes.$.find('/personal/users/1/comments', 0)).toBe(routes.$)
-    expect(routes.$.find('/personal/users/1/comments', 1)).toBe(routes.users.$)
-    expect(routes.$.find('/personal/users/1/comments', 2)).toBe(routes.users.id.$)
-    expect(routes.$.find('/personal/users/1/comments', 3)).toBe(routes.users.id.comments.$)
+    expect(routes.$.find('/personal/users/1/comments', { depth: 0 })).toBe(routes.$)
+    expect(routes.$.find('/personal/users/1/comments', { depth: 1 })).toBe(routes.users.$)
+    expect(routes.$.find('/personal/users/1/comments', { depth: 2 })).toBe(routes.users.id.$)
+    expect(routes.$.find('/personal/users/1/comments', { depth: 3 })).toBe(routes.users.id.comments.$)
   })
 
-  it('Trailing slash', () => {
+  test('Trailing slash', () => {
     const mb = routeBuilder({
       basePath: '/local',
       trailingSlash: true,

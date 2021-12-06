@@ -1,14 +1,8 @@
-/**
- * @internal
- */
 export enum PathType {
   Path,
   Param,
 }
 
-/**
- * @internal
- */
 interface BaseRouteDefinition<T, TMeta> {
   /**
    * Children routes.
@@ -23,9 +17,6 @@ interface BaseRouteDefinition<T, TMeta> {
   meta?: TMeta
 }
 
-/**
- * @internal
- */
 export interface PathDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
   /**
    * Path relative to parent. By default paths equals to key.
@@ -40,35 +31,11 @@ export interface PathDefinition<TChildren, TMeta = undefined> extends BaseRouteD
   type: PathType.Path
 }
 
-/**
- * @internal
- */
-export interface ArgumentDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
+export interface ParamDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
   /**
    * @internal
    */
   type: PathType.Param
 }
 
-/**
- * @internal
- */
-export type AllRouteDefinitions<T, TMeta> = PathDefinition<T, TMeta> | ArgumentDefinition<T, TMeta>
-
-export interface RouteTreeConfig {
-  /**
-   * Global routes prefix.
-   * @default '/'
-   */
-  basePath?: string
-
-  /**
-   * Use trailing slash on routes
-   * @default false
-   */
-  trailingSlash?: boolean
-}
-
-export type NoArgs = undefined //'noargs'
-
-export type ParamType = string | number
+export type AllRouteDefinitions<T, TMeta> = PathDefinition<T, TMeta> | ParamDefinition<T, TMeta>
