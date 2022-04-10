@@ -1,17 +1,16 @@
 {
   "name": "@mc-petry/route-tree",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Typed routes management",
   "main": "dist/route-tree.cjs.js",
   "module": "dist/route-tree.es.js",
   "typings": "dist/route-tree.d.ts",
   "scripts": {
     "test": "jest",
-    "pack": "node pack.js",
     "build": "run-s build:*",
     "build:lib": "tsc && vite build",
     "build:dts": "rollup -c",
-    "compose": "run-s build test pack"
+    "prepublishOnly": "run-s build test"
   },
   "keywords": [
     "route",
