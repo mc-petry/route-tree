@@ -88,7 +88,7 @@ export class Route<TMeta = undefined, TArgs = any> {
   }) as TArgs extends NoArgs ? () => string : (args: TArgs) => string
 
   /**
-   * Returns a child route that matches specified location.
+   * Returns a child route that matches specified pathname.
    */
   find(
     pathname: string,

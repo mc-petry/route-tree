@@ -15,7 +15,7 @@ interface RouteActions<TMeta, TArgs> {
   $: Route<TMeta, TArgs>
 }
 
-type Routes<TChildren = any, TMeta = undefined, TArgs = NoArgs> = RoutesTree<TChildren, TArgs> &
+export type Routes<TChildren = any, TMeta = undefined, TArgs = NoArgs> = RoutesTree<TChildren, TArgs> &
   RouteActions<TMeta, TArgs>
 
 type RoutesTreeChildIsArg<T, TArgs, TName> = T extends ParamDefinition<infer TChildren, infer TMeta>

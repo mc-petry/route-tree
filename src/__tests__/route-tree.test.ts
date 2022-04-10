@@ -1,4 +1,4 @@
-import { routeBuilder } from '..'
+import { Route, routeBuilder, Routes } from '..'
 
 describe('Generation', () => {
   const builder = routeBuilder()
@@ -207,5 +207,22 @@ describe('Advanced', () => {
     expect(menu.$.route()).toBe('/local/')
     expect(menu.users.$.route()).toBe('/local/users/')
     expect(menu.users.id.rating.$.route({ id: 5 })).toBe('/local/users/5/rating/')
+  })
+
+  test('Exported types', () => {
+    const tree = builder.tree(({ path: route, param: arg }) => ({
+      article: route({
+        children: {
+          id: arg(),
+        },
+      }),
+    }))
+
+    const routes = builder.build(tree)
+    const route: Route = routes.article.$
+    const subroutes: Routes = routes.article
+
+    expect(route.path).toBe('article')
+    expect(subroutes.$.path).toBe('article')
   })
 })
