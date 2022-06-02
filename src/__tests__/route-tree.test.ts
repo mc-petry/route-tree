@@ -63,21 +63,21 @@ describe('Advanced', () => {
   })
 
   test('Splitted subtrees', () => {
-    const articlesTree = builder.tree(({ path: route, param: arg }) => ({
+    const articlesTree = builder.tree(({ path: route, param }) => ({
       article: route({
         children: {
-          id: arg(),
+          id: param(),
         },
       }),
     }))
 
-    const usersTree = builder.tree(({ path: route, param: arg }) => ({
-      users: route({
+    const usersTree = builder.tree(({ path, param }) => ({
+      users: path({
         children: {
-          id: arg({
+          id: param({
             children: {
-              topics: route(),
-              comments: route(),
+              topics: path(),
+              comments: path(),
             },
           }),
         },
@@ -95,10 +95,10 @@ describe('Advanced', () => {
 
   test('Children', () => {
     const routes = builder.build(
-      builder.tree(({ path: route, param: arg }) => ({
+      builder.tree(({ path: route, param }) => ({
         articles: route({
           children: {
-            id: arg({
+            id: param({
               children: {
                 comments: route(),
                 claps: route(),
@@ -118,16 +118,16 @@ describe('Advanced', () => {
 
   test('Meta', () => {
     const routes = builder.build(
-      builder.tree(({ path: route }) => ({
-        home: route({
+      builder.tree(({ path, param }) => ({
+        home: path({
           meta: { theme: 'light' },
           children: {
-            projects: route({
-              meta: { visible: false },
+            projects: path({
+              meta: { visible: false } as { visible: boolean },
             }),
           },
         }),
-        about: route({
+        about: path({
           meta: { theme: 'dark' },
         }),
       }))
@@ -150,10 +150,10 @@ describe('Advanced', () => {
     expect(simpleRoutes.$.find('/nodes')).toBe(simpleRoutes.nodes.$)
 
     const routes = builder.build(
-      builder.tree(({ path: route, param: arg }) => ({
+      builder.tree(({ path: route, param }) => ({
         users: route({
           children: {
-            id: arg({
+            id: param({
               children: {
                 view: route(),
                 comments: route(),
@@ -210,10 +210,10 @@ describe('Advanced', () => {
   })
 
   test('Exported types', () => {
-    const tree = builder.tree(({ path: route, param: arg }) => ({
+    const tree = builder.tree(({ path: route, param }) => ({
       article: route({
         children: {
-          id: arg(),
+          id: param(),
         },
       }),
     }))

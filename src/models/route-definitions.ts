@@ -24,17 +24,10 @@ export interface PathDefinition<TChildren, TMeta = undefined> extends BaseRouteD
    * `pascalCase` keys will be transformed to `dash-case` routes.
    */
   path?: string
-
-  /**
-   * @internal
-   */
   type: PathType.Path
 }
 
 export interface ParamDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
-  /**
-   * @internal
-   */
   type: PathType.Param
 }
 

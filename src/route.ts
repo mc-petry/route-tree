@@ -17,6 +17,14 @@ export class Route<TMeta = undefined, TArgs = any> {
 
   /**
    * Gets the relative path.
+   *
+   * @example
+   * ```
+   * // profile: path() -> user: param() -> settings: path()
+   *
+   * routes.profile.user.$.path === ':user'
+   * routes.profile.user.settings.$.path === 'settings'
+   * ```
    */
   readonly path: string
 
@@ -27,6 +35,14 @@ export class Route<TMeta = undefined, TArgs = any> {
 
   /**
    * Gets the route pattern.
+   *
+   * @example
+   * ```
+   * // profile: path() -> user: param() -> settings: path()
+   *
+   * routes.profile.user.$.pattern === '/profile/:user'
+   * routes.profile.user.settings.$.pattern === '/profile/:user/settings'
+   * ```
    */
   readonly pattern: string
 
@@ -74,6 +90,14 @@ export class Route<TMeta = undefined, TArgs = any> {
 
   /**
    * Builds a full route.
+   *
+   * @example
+   * ```
+   * // profile: path() -> user: param() -> settings: path()
+   *
+   * routes.profile.user.$.route({ user: 'John' }) === '/profile/John'
+   * routes.profile.user.settings.$.route({ user 'John' }) === '/profile/John/settings'
+   * ```
    */
   readonly route = ((args?: any) => {
     let fp = this.pattern

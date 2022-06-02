@@ -11,7 +11,7 @@ Construct menu:
 const builder = routeBuilder(options)
 
 // Create tree
-const tree = builder.tree(({ route, arg }) => ({
+const tree = builder.tree(({ route, param }) => ({
   home: route(),
   users: route({
     children: {
