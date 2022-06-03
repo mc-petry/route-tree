@@ -1,8 +1,9 @@
-import { NoArgs } from './models/no-args'
-import { AllRouteDefinitions, PathType } from './models/route-definitions'
-import { RouteTreeConfig } from './models/route-tree-config'
+import { AllRouteDefinitions } from './models/all-route-definitions'
+import { RouteBuilderConfig } from './models/route-builder-config'
+import { RouteType } from './models/route-definitions'
+import { ParamBaseType } from './param'
 
-export class Route<TMeta = undefined, TArgs = any> {
+export class Route<out TMeta = unknown, out TArgs = any> {
   private static readonly paramPlaceHolder = (name: string) => `:${name}`
 
   /**
@@ -20,7 +21,7 @@ export class Route<TMeta = undefined, TArgs = any> {
    *
    * @example
    * ```
-   * // profile: path() -> user: param() -> settings: path()
+   * // profile: segment() -> user: param() -> settings: segment()
    *
    * routes.profile.user.$.path === ':user'
    * routes.profile.user.settings.$.path === 'settings'
@@ -31,7 +32,7 @@ export class Route<TMeta = undefined, TArgs = any> {
   /**
    * Gets the route type.
    */
-  readonly type: PathType
+  readonly kind: RouteType
 
   /**
    * Gets the route pattern.
@@ -47,25 +48,26 @@ export class Route<TMeta = undefined, TArgs = any> {
   readonly pattern: string
 
   constructor(
-    private readonly _config: RouteTreeConfig,
+    private readonly _config: RouteBuilderConfig,
     private readonly _parent: Route | undefined,
-    child: AllRouteDefinitions<any, any>,
+    child: AllRouteDefinitions,
     chainKey: string
   ) {
     if (_parent) {
       _parent.children.push(this as Route<any>)
     }
 
-    this.type = child.type
+    this.kind = child.kind
     this.meta = child.meta
 
     // Generate relative path
-    switch (child.type) {
-      case PathType.Path:
-        this.path = child.path || chainKey.replace(/[A-Z]/g, x => '-' + x.toLowerCase())
+    switch (child.kind) {
+      case RouteType.Segment:
+        this.path =
+          child.path || chainKey.replace(/[A-Z]/g, x => '-' + x.toLowerCase())
         break
 
-      case PathType.Param:
+      case RouteType.Param:
         this.path = Route.paramPlaceHolder(chainKey)
         break
 
@@ -93,23 +95,27 @@ export class Route<TMeta = undefined, TArgs = any> {
    *
    * @example
    * ```
-   * // profile: path() -> user: param() -> settings: path()
+   * // profile: segment() -> user: param() -> settings: segment()
    *
    * routes.profile.user.$.route({ user: 'John' }) === '/profile/John'
    * routes.profile.user.settings.$.route({ user 'John' }) === '/profile/John/settings'
    * ```
    */
-  readonly route = ((args?: any) => {
+  route(params: TArgs extends undefined ? void : TArgs) {
     let fp = this.pattern
+    const typedParams = params as Record<string, ParamBaseType> | undefined
 
-    if (args) {
-      for (const key of Object.keys(args)) {
-        fp = fp.replace(Route.paramPlaceHolder(key), args[key].toString())
+    if (typedParams) {
+      for (const key of Object.keys(typedParams)) {
+        fp = fp.replace(
+          Route.paramPlaceHolder(key),
+          typedParams[key].toString()
+        )
       }
     }
 
     return fp
-  }) as TArgs extends NoArgs ? () => string : (args: TArgs) => string
+  }
 
   /**
    * Returns a child route that matches specified pathname.
@@ -129,11 +135,17 @@ export class Route<TMeta = undefined, TArgs = any> {
       return null
     }
 
-    if (pathname === root.path || pathname === root.path + '/' || options.depth === 0) {
+    if (
+      pathname === root.path ||
+      pathname === root.path + '/' ||
+      options.depth === 0
+    ) {
       return root
     }
 
-    pathname = pathname.substring(root.path.length === 1 ? 1 : root.path.length + 1)
+    pathname = pathname.substring(
+      root.path.length === 1 ? 1 : root.path.length + 1
+    )
 
     if (pathname.slice(-1) === '/') {
       pathname = pathname.slice(0, -1)
@@ -147,12 +159,12 @@ export class Route<TMeta = undefined, TArgs = any> {
       for (let j = 0; j < item.children.length; j++) {
         const child = item.children[j]
 
-        if (child.type === PathType.Path && child.path === parts[i]) {
+        if (child.kind === RouteType.Segment && child.path === parts[i]) {
           item = child
           break
         }
 
-        if (child.type === PathType.Param) {
+        if (child.kind === RouteType.Param) {
           item = child
           break
         }

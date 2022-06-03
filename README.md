@@ -1,28 +1,39 @@
-# route-tree
+# Route Tree
 
-Powerful and simple tool to build a complex route tree.
+💪 Fully written in TypeScript\
+🌲 Composition support with splitted trees\
+🚀 Works anywhere\
+🫕 Zero dependencies\
+🪶 Lightweight (gzip: 1.38 KiB)
 
-# Usage
+## Requirements:
 
-Construct menu:
+```
+Typescript 4.7+
+```
+
+## Installation
+
+Install package:
+
+```
+npm install @mc-petry/route-tree
+```
+
+Construct routes:
 
 ```ts
 // Create builder
 const builder = routeBuilder(options)
 
 // Create tree
-const tree = builder.tree(({ route, param }) => ({
-  home: route(),
-  users: route({
+const tree = builder.tree({
+  user: segment({
     children: {
-      id: arg({
-        children: {
-          comments: route(),
-        },
-      }),
+      id: param(),
     },
   }),
-}))
+})
 
 // Build routes
 const routes = builder.build(tree)
@@ -31,14 +42,9 @@ const routes = builder.build(tree)
 Use it anywhere:
 
 ```ts
-routes.home.$.fullpath() // `/home`
-routes.users.id.$.fullpath({ id: '1' }) // `/users/1`
-routes.users.id.comments.$.fullpath({ id: 'mc-petry' }) // `/users/mc-petry/comments`
-```
+routes.user.$.route() // `/home`
+routes.users.id.$.route({ id: 'John' }) // `/users/John`
 
-Compatible with react-router:
-
-```ts
 routes.users.id.$.path // `:id`
 routes.users.id.$.pattern // `/users/:id`
 ```
@@ -46,7 +52,7 @@ routes.users.id.$.pattern // `/users/:id`
 ## Configuration
 
 ```ts
-interface RouteTreeConfig {
+interface RouteBuilderConfig {
   /**
    * Global routes prefix.
    * @default '/'
@@ -73,33 +79,36 @@ routes.$.find(pathname: string, options?: { depth?: number }): Route | null
 ## Routes meta
 
 ```ts
-const menu = builder.build(
-  builder.tree(({ route }) => ({
-    home: route({
-      meta: {
-        hidden: true,
-      },
+const routes = builder.build(
+  builder.tree({
+    home: segment({
+      meta: { hidden: true },
     }),
-    about: route({
-      meta: {
-        hidden: false,
-      },
-    }),
-  }))
+  })
 )
 
 // Example usage
-menu.routes._.children.filter(route => !route.meta.hidden)
+routes.home.$.meta.hidden === true
 ```
 
-## Split trees
+## Splitted trees
 
 ```ts
-const homeTree = builder.tree(...)
-const usersTree = builder.tree(...)
+const home = builder.tree(...)
+const users = builder.tree(...)
 
-const menu = builder.build({
-  ...homeTree,
-  ...usersTree
+const routes = builder.build({
+  ...home,
+  ...users
+})
+```
+
+## Types params
+
+```ts
+builder.tree({
+  color: segment({
+    id: param().setType<'grey' | 'yellow'>(),
+  }),
 })
 ```

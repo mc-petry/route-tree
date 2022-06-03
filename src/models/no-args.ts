@@ -1,1 +1,1 @@
-export type NoArgs = undefined // Previously 'noargs'
+export type NoArgs = undefined

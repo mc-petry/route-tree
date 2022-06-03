@@ -1,4 +1,4 @@
-export interface RouteTreeConfig {
+export interface RouteBuilderConfig {
   /**
    * Global routes prefix.
    * @default '/'

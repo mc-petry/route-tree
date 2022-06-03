@@ -1,34 +1,21 @@
-export enum PathType {
-  Path,
+export enum RouteType {
+  Segment,
   Param,
 }
 
-interface BaseRouteDefinition<T, TMeta> {
+export interface BaseRouteDefinition<out T extends Record<string, unknown> | {}> {
   /**
    * Children routes.
    */
   children?: T
 
   /**
-   * Custom route attributes.
-   *
-   * Useful for storing specific parameters and using them when iterating over parent children.
+   * @internal
    */
-  meta?: TMeta
+  meta?: any
 }
 
-export interface PathDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
-  /**
-   * Path relative to parent. By default paths equals to key.
-   *
-   * `pascalCase` keys will be transformed to `dash-case` routes.
-   */
-  path?: string
-  type: PathType.Path
+export interface RoutePartsGenerics {
+  Children: any
+  Meta: any
 }
-
-export interface ParamDefinition<TChildren, TMeta = undefined> extends BaseRouteDefinition<TChildren, TMeta> {
-  type: PathType.Param
-}
-
-export type AllRouteDefinitions<T, TMeta> = PathDefinition<T, TMeta> | ParamDefinition<T, TMeta>

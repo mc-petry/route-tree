@@ -1,3 +1,5 @@
+export { param } from './param'
 export type { Route } from './route'
 export { routeBuilder } from './route-builder'
 export type { Routes } from './route-builder'
+export { segment } from './segment'
