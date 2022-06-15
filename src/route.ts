@@ -20,7 +20,7 @@ export class Route<
   /**
    * Gets the parent route.
    */
-  readonly parent: Route | undefined
+  readonly parent: Route | null = null
 
   /**
    * Gets the children routes.

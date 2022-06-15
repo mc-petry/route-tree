@@ -1,6 +1,6 @@
 {
   "name": "@mc-petry/route-tree",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Typed routes management",
   "main": "dist/route-tree.cjs.js",
   "module": "dist/route-tree.es.js",
