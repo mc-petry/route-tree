@@ -4,7 +4,7 @@ import { RouteBuilderConfig } from './models/route-builder-config'
 import {
   BaseRouteDefinition,
   RoutePartsGenerics,
-  RouteType
+  RouteType,
 } from './models/route-definitions'
 import { ParamDefinition } from './param'
 import { Route } from './route'
@@ -20,15 +20,25 @@ type PathDefinitions<out T extends { [key: string]: RoutePartsGenerics }> = {
   [P in keyof T]: BaseRouteDefinition<T[P]> & AllRouteDefinitions
 }
 
-interface RouteActions<out TMeta, out TArgs> {
-  $: Route<TMeta, TArgs>
+interface RouteActions<out TMeta, out TChildrenMeta, out TArgs> {
+  $: Route<TMeta, TChildrenMeta, TArgs>
 }
 
 export type Routes<TChildren = any, TMeta = any, TArgs = NoArgs> = RoutesTree<
   TChildren,
   TArgs
 > &
-  RouteActions<TMeta, TArgs>
+  RouteActions<
+    TMeta,
+    TChildren extends Record<
+      string,
+      | SergmentDefinition<{ Children: any; Meta: infer TChildrenMeta }>
+      | ParamDefinition<{ Children: any; Type: any; Meta: infer TChildrenMeta }>
+    >
+      ? TChildrenMeta
+      : unknown,
+    TArgs
+  >
 
 type RoutesTreeChildIsParam<T, TArgs, TName> = T extends ParamDefinition<
   infer TParams

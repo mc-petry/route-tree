@@ -1,10 +1,10 @@
 # Route Tree
 
-💪 Fully written in TypeScript\
-🌲 Composition support with splitted trees\
-🚀 Works anywhere\
-🫕 Zero dependencies\
-🪶 Lightweight (gzip: 1.38 KiB)
+💪 &nbsp; Fully written in TypeScript\
+🌲 &nbsp; Composition support with splitted trees\
+🚀 &nbsp; Works anywhere\
+🫕 &nbsp; Zero dependencies\
+🪶 &nbsp; Lightweight (gzip: 1.38 KiB)
 
 ## Requirements:
 

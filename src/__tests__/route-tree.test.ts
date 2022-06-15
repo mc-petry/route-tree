@@ -150,6 +150,9 @@ describe('Advanced', () => {
     expect(routes.home.$.meta.theme).toBe('light')
     expect(routes.about.$.meta.theme).toBe('dark')
     expect(routes.home.projects.$.meta.visible).toBeFalsy()
+    // Children meta
+    expect(routes.$.children.some(r => r.meta.theme === 'dark')).toBe(true)
+    expect(routes.home.$.children.some(r => r.meta.visible)).toBe(false)
   })
 
   test('Find child', () => {
@@ -203,6 +206,10 @@ describe('Advanced', () => {
       routes.users.id.$
     )
     expect(routes.$.find('/personal/users/1/comments', { depth: 3 })).toBe(
+      routes.users.id.comments.$
+    )
+
+    expect(routes.users.$.find('users/1/comments')).toBe(
       routes.users.id.comments.$
     )
   })

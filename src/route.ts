@@ -3,8 +3,14 @@ import { RouteBuilderConfig } from './models/route-builder-config'
 import { RouteType } from './models/route-definitions'
 import { ParamBaseType } from './param'
 
-export class Route<out TMeta = unknown, out TArgs = any> {
-  private static readonly paramPlaceHolder = (name: string) => `:${name}`
+export class Route<
+  out TMeta = unknown,
+  out TChildrenMeta = unknown,
+  out TArgs = any
+> {
+  static readonly #paramPlaceHolder = (name: string) => `:${name}`
+
+  #config: RouteBuilderConfig
 
   /**
    * Gets the custom route attributes defined in RouteDefinition.
@@ -12,9 +18,14 @@ export class Route<out TMeta = unknown, out TArgs = any> {
   readonly meta: TMeta
 
   /**
+   * Gets the parent route.
+   */
+  readonly parent: Route | undefined
+
+  /**
    * Gets the children routes.
    */
-  readonly children: Route<TMeta, TArgs>[] = []
+  readonly children: Route<TChildrenMeta, TArgs>[] = []
 
   /**
    * Gets the relative path.
@@ -48,13 +59,16 @@ export class Route<out TMeta = unknown, out TArgs = any> {
   readonly pattern: string
 
   constructor(
-    private readonly _config: RouteBuilderConfig,
-    private readonly _parent: Route | undefined,
+    config: RouteBuilderConfig,
+    parent: Route | undefined,
     child: AllRouteDefinitions,
     chainKey: string
   ) {
-    if (_parent) {
-      _parent.children.push(this as Route<any>)
+    this.#config = config
+
+    if (parent) {
+      this.parent = parent
+      this.parent.children.push(this)
     }
 
     this.kind = child.kind
@@ -68,7 +82,7 @@ export class Route<out TMeta = unknown, out TArgs = any> {
         break
 
       case RouteType.Param:
-        this.path = Route.paramPlaceHolder(chainKey)
+        this.path = Route.#paramPlaceHolder(chainKey)
         break
 
       default:
@@ -76,8 +90,8 @@ export class Route<out TMeta = unknown, out TArgs = any> {
     }
 
     // Generate pattern
-    if (this._parent) {
-      const parentPath = this._parent.pattern
+    if (this.parent) {
+      const parentPath = this.parent.pattern
       const divider = parentPath.slice(-1) === '/' ? '' : '/'
 
       this.pattern = parentPath + divider + this.path
@@ -85,7 +99,7 @@ export class Route<out TMeta = unknown, out TArgs = any> {
       this.pattern = this.path
     }
 
-    if (this._config.trailingSlash) {
+    if (this.#config.trailingSlash) {
       this.pattern += '/'
     }
   }
@@ -108,7 +122,7 @@ export class Route<out TMeta = unknown, out TArgs = any> {
     if (typedParams) {
       for (const key of Object.keys(typedParams)) {
         fp = fp.replace(
-          Route.paramPlaceHolder(key),
+          Route.#paramPlaceHolder(key),
           typedParams[key].toString()
         )
       }
@@ -129,7 +143,7 @@ export class Route<out TMeta = unknown, out TArgs = any> {
       depth?: number
     } = {}
   ): Route | null {
-    const root = this as Route<any>
+    const root = this
 
     if (!pathname.startsWith(root.path)) {
       return null
