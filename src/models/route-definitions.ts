@@ -3,7 +3,9 @@ export enum RouteType {
   Param,
 }
 
-export interface BaseRouteDefinition<out T extends Record<string, unknown> | {}> {
+export interface BaseRouteDefinition<
+  out T extends Record<string, unknown> | {}
+> {
   /**
    * Children routes.
    */

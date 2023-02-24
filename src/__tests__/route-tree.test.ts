@@ -1,4 +1,5 @@
-import { param, Route, routeBuilder, Routes, segment } from '..'
+import { describe, expect, test } from 'vitest'
+import { param, Route, routeBuilder, RouteParams, Routes, segment } from '..'
 
 describe('Generation', () => {
   const builder = routeBuilder()
@@ -282,5 +283,21 @@ describe('Advanced', () => {
         sisterName: 'Sofia',
       })
     ).toBe('/personal/user/Adeline/sister/Sofia')
+  })
+
+  test('RouteParams', () => {
+    const tree = builder.tree({
+      user: segment({
+        children: {
+          name: param(),
+        },
+      }),
+    })
+    const routes = builder.build(tree)
+
+    type Params = RouteParams<typeof routes.user.name>
+    const params: Params = {
+      name: 'expected paramter',
+    }
   })
 })

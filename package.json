@@ -1,16 +1,21 @@
 {
   "name": "@mc-petry/route-tree",
-  "version": "2.0.2",
-  "description": "Typed routes management",
-  "main": "dist/route-tree.cjs.js",
-  "module": "dist/route-tree.es.js",
-  "typings": "dist/route-tree.d.ts",
+  "version": "3.0.0",
+  "description": "Typed route management",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/route-tree.d.ts",
+      "import": "./dist/route-tree.es.js",
+      "require": "./dist/route-tree.cjs"
+    }
+  },
+  "types": "dist/route-tree.d.ts",
   "scripts": {
-    "test": "jest",
-    "build": "run-s build:*",
-    "build:lib": "tsc && vite build",
-    "build:dts": "rollup -c",
-    "prepublishOnly": "run-s build test"
+    "test": "vitest",
+    "build": "tsc && vite build",
+    "prepublishOnly": "run-s build test",
+    "prettify": "prettier --write 'src/**/*.(ts|tsx)'"
   },
   "keywords": [
     "route",
@@ -19,20 +24,17 @@
   "author": "mc-petry",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^28.1.1",
-    "@typescript-eslint/eslint-plugin": "^5.28.0",
-    "@typescript-eslint/parser": "^5.28.0",
-    "eslint": "^8.17.0",
-    "fs-extra": "^10.1.0",
-    "jest": "^28.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "eslint": "^8.34.0",
+    "fs-extra": "^11.1.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "~2.7.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.75.6",
-    "rollup-plugin-dts": "^4.2.2",
-    "ts-jest": "^28.0.5",
-    "typescript": "^4.7.3",
-    "vite": "^2.9.12"
+    "prettier": "~2.8.4",
+    "rimraf": "^4.1.2",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.4",
+    "vite-plugin-dts": "^2.0.2",
+    "vitest": "^0.28.5"
   },
   "repository": {
     "type": "git",

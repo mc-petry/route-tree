@@ -1,8 +1,8 @@
 import { AllRouteDefinitions } from './models/all-route-definitions'
 import {
-    BaseRouteDefinition,
-    RoutePartsGenerics,
-    RouteType
+  BaseRouteDefinition,
+  RoutePartsGenerics,
+  RouteType,
 } from './models/route-definitions'
 import { Overwrite } from './models/utils'
 
