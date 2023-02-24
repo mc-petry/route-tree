@@ -1,22 +1,28 @@
 {
   "name": "@mc-petry/route-tree",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Typed route management",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/route-tree.d.ts",
-      "import": "./dist/route-tree.es.js",
-      "require": "./dist/route-tree.cjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs"
     }
   },
-  "types": "dist/route-tree.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "vitest",
     "build": "tsc && vite build",
     "prepublishOnly": "run-s build test",
     "prettify": "prettier --write 'src/**/*.(ts|tsx)'"
   },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "route",
     "tree"
